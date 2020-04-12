@@ -1,0 +1,44 @@
+name: CI
+
+on: [push]
+
+jobs:
+  all-in-one:
+    name: Build and Test
+
+    runs-on: ubuntu-latest
+
+    services:
+      database:
+        image: mongo:4.2
+        env:
+          MONGO_INITDB_ROOT_USERNAME: admin
+          MONGO_INITDB_ROOT_PASSWORD: 123456
+        ports:
+          - 27017:27017
+
+    env:
+      MONGO_URL: mongodb://admin:123456@localhost:27017
+      DATABASE_NAME: development
+
+    steps:
+      - uses: actions/checkout@master
+
+      - uses: actions/setup-node@master
+        with:
+          node-version: '12.x'
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build
+        run: yarn build
+
+      - name: Validating
+        run: yarn validate
+
+      - name: Migrations
+        run: yarn migrate up
+
+      - name: Testing
+        run: yarn test
